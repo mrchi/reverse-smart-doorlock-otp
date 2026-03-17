@@ -8,10 +8,23 @@ import struct
 import sys
 
 # 常量定义
-PASSWORD_MAIN_LENGTH: int = 8  # 主密码长度（固定8位，与小程序版本兼容）
-DURATION_LENGTH: int = 2  # 有效期位数（固定2位，与小程序版本兼容）
+PASSWORD_MAIN_LENGTH: int = 8  # 主密码长度（固定 8 位，与小程序版本兼容）
+DURATION_LENGTH: int = 2  # 有效期位数（固定 2 位，与小程序版本兼容）
 # 时间计算起点（与原实现保持一致，2000 年 1 月 1 日 0 点，时区无关）
 EPOCH: datetime.datetime = datetime.datetime(2000, 1, 1, tzinfo=None)
+
+
+def get_total_seconds_with_offset(dt: datetime.datetime) -> int:
+    """计算带偏移的总秒数，与原实现逻辑完全一致，保持与小程序版本兼容"""
+    month_days = calendar.monthrange(dt.year, dt.month)[1]
+    total_seconds = int((dt - EPOCH).total_seconds()) + (month_days + 1) * 86400
+    return total_seconds
+
+
+def get_time_counter(dt: datetime.datetime, duration: int) -> int:
+    """计算时间计数器，与生成逻辑保持一致"""
+    total_seconds = get_total_seconds_with_offset(dt)
+    return total_seconds // (60 * duration)
 
 
 def generate_digit_password(seed_int: int, time_counter: int) -> str:
@@ -58,10 +71,7 @@ def generate_totp(seed: int, duration: int, dt: datetime.datetime | None = None)
         dt = EPOCH
 
     # 原逻辑 bug 导致多累加了当月完整天数 + 当天，这里补偿偏移保持完全等价
-    month_days = calendar.monthrange(dt.year, dt.month)[1]
-    total_seconds = int((dt - EPOCH).total_seconds()) + (month_days + 1) * 86400
-
-    time_counter = total_seconds // (60 * duration)
+    time_counter = get_time_counter(dt, duration)
 
     # 生成指定长度的密码主体
     password = generate_digit_password(seed, time_counter)

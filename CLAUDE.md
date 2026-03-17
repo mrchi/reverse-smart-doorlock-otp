@@ -20,6 +20,7 @@
 |------|------|
 | `generate_totp.py` | 核心算法实现，使用Python标准库的SHA1、HMAC-SHA1实现TOTP生成逻辑 |
 | `test_totp.py` | 测试用例集合，包含固定时间点的密码验证 |
+| `verify_exploit.py` | 漏洞验证工具，检测TOTP密码有效期可被篡改的安全漏洞 |
 
 ## 常用命令
 ```bash
@@ -28,6 +29,9 @@ uv run pytest
 
 # 生成密码
 python3 generate_totp.py <管理员密码> <有效期>
+
+# 验证有效期修改漏洞
+python3 verify_exploit.py <管理员密码> <初始有效期>
 ```
 
 ## 注意事项
